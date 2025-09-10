@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>粉色文字演示</title>
+<style>
+  :root{
+    --bg: #ffffff;
+    --text-size: 18vmin;
+    --text-color: #f4a7c3; /* 淡粉色 */
+    --hint: rgba(0,0,0,0.45);
+  }
+  body.dark{
+    --bg: #111111;
+    --text-color: #f2aac8; /* 深色模式下稍亮的粉 */
+    --hint: rgba(255,255,255,0.45);
+  }
+
+  html,body{
+    height:100%; margin:0;
+    background: var(--bg);
+    transition: background 0.4s ease;
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    overflow:hidden;
+  }
+
+  .toggle-btn{
+    position:fixed;
+    top:12px; left:12px;
+    z-index:10;
+    background: rgba(0,0,0,0.06);
+    color:#222;
+    border:none;
+    border-radius:8px;
+    padding:8px 12px;
+    font-weight:700;
+    cursor:pointer;
+    backdrop-filter: blur(6px);
+    transition: background 0.2s, color 0.2s;
+  }
+  body.dark .toggle-btn{ background: rgba(255,255,255,0.1); color:#fff; }
+
+  .stage{
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    perspective:1000px;
+  }
+
+  .headline{
+    font-size:var(--text-size);
+    font-weight:900;
+    color: var(--text-color); /* 使用粉色文字 */
+    user-select:none;
+    transform-style:preserve-3d;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    will-change: transform;
+  }
+
+  .char{
+    display:inline-block;
+    transition: transform 0.7s cubic-bezier(.2,.9,.2,1), opacity 0.7s;
+  }
+
+  .hint{
+    position:fixed;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%);
+    color:var(--hint);
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.04em;
+    pointer-events:none;
+  }
+</style>
+</head>
+<body>
+  <button class="toggle-btn" id="toggleMode">深色模式</button>
+  <div class="stage" id="stage">
+    <div class="headline" id="headline"></div>
+  </div>
+  <div class="hint">点击文字会爆散再自动复位 · 左上角切换模式</div>
+
+<script>
+(function(){
+  const TEXT = "余璇是sb";
+  const headline = document.getElementById("headline");
+  const stage = document.getElementById("stage");
+  const toggleBtn = document.getElementById("toggleMode");
+
+  headline.innerHTML = [...TEXT].map(ch => `<span class="char">${ch}</span>`).join('');
+
+  // 鼠标移动倾斜
+  stage.addEventListener('mousemove', (e)=>{
+    const rect = stage.getBoundingClientRect();
+    const dx = (e.clientX - (rect.left + rect.width/2)) / rect.width;
+    const dy = (e.clientY - (rect.top + rect.height/2)) / rect.height;
+    headline.style.transform = `rotateX(${dy * -10}deg) rotateY(${dx * 12}deg)`;
+  });
+  stage.addEventListener('mouseleave', ()=>headline.style.transform = 'rotateX(0) rotateY(0)');
+
+  // 点击：自动爆散后复位
+  stage.addEventListener('click', ()=>{
+    const chars = headline.querySelectorAll('.char');
+    chars.forEach(el=>{
+      const rx = (Math.random()-0.5)*400;
+      const ry = (Math.random()-0.5)*200;
+      const rz = -100 - Math.random()*200;
+      el.style.transform = `translate3d(${rx}px,${ry}px,${rz}px) rotate(${Math.random()*60-30}deg)`;
+      el.style.opacity = 0.3;
+    });
+    setTimeout(()=>{
+      chars.forEach(el=>{
+        el.style.transform = "translate3d(0,0,0) rotate(0)";
+        el.style.opacity = 1;
+      });
+    }, 1000); // 1秒后复位
+  });
+
+  // 模式切换
+  toggleBtn.addEventListener('click', ()=>{
+    const dark = document.body.classList.toggle('dark');
+    toggleBtn.textContent = dark ? '浅色模式' : '深色模式';
+  });
+})();
+</script>
+</body>
+</html>
